@@ -1,6 +1,9 @@
 {
   "name": "nodejs-core-service",
   "version": "0.1.0",
+  "gc-project-name": "gc-project-name",
+  "gc-zone": "europe-west1-b",
+  "gc-cluster-name": "gc-cluster-name",
   "description": "Core Service with basic modules and templates",
   "main": "app.js",
   "scripts": {
