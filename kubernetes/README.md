@@ -18,7 +18,7 @@ variables inside these files:
 
 ```
 Dockerfile.template
-rc.tamplate
+rc.template.yaml
 ../package.json
 ```
 
