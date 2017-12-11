@@ -3,6 +3,8 @@ const Promise = require('bluebird');
 const logger = require('../lib/logger')(module);
 const util = require('util');
 
+const DEFAULT_SQL_QUERY_PARAMETER_TYPE = 'STRING';
+
 const gc_big_query = require('@google-cloud/bigquery');
 
 class Aggregator {
@@ -55,6 +57,10 @@ class Aggregator {
       .resolve(configuration)
       .then(Aggregator.validateConfiguration)
       .then(Aggregator.ensureDestinationDatasetExist)
+      .then(Aggregator.ensureDestinationTableExist)
+      .then(Aggregator.buildDatePartitionDecorator)
+      .then(Aggregator.formatSQLQueryParameters)
+      .then(Aggregator.executeAggregationJob)
       .then(Aggregator.clean);
   }
 
@@ -62,7 +68,7 @@ class Aggregator {
   /**
    * Validate presence of all required data for further processing (aggregating)
    * @param {object} configuration Setting and data accumulator
-   * @returns {Promise.<object>} resolves with validated job_data or rejects with corresponding error message
+   * @returns {Promise.<object>} resolves with validated configuration or rejects with corresponding error message
    */
   static validateConfiguration (configuration) {
     return new Promise((resolve, reject) => {
@@ -89,9 +95,9 @@ class Aggregator {
   }
 
   /**
-   * Ensure that destination dataset exist. Auto create dataset according to configuration within job_data
+   * Ensure that destination dataset exist. Auto create dataset according to passed configuration
    * @param {object} configuration Setting and data accumulator
-   * @returns {Promise.<object>} resolves with job_data or rejects with corresponding error message
+   * @returns {Promise.<object>} resolves with configuration or rejects with corresponding error message
    */
   static ensureDestinationDatasetExist (configuration) {
     return new Promise((resolve, reject) => {
@@ -109,6 +115,164 @@ class Aggregator {
         logger.debug(`[ X ] Ensure destination Dataset "${configuration.data_set_name}" exist. Metadata: ${util.inspect(data_set.metadata, null, 10)}`);
 
         return resolve(configuration);
+      });
+    });
+  }
+
+  /**
+   * Ensure destination table exist. Auto create table according to passed configuration
+   * @param {object} configuration Setting and data accumulator
+   * @returns {Promise.<object>} resolves with configuration or rejects with corresponding error message
+   */
+  static ensureDestinationTableExist (configuration) {
+    return new Promise((resolve, reject) => {
+      const table_instance = gc_big_query
+        .dataset(configuration.data_set_name)
+        .table(configuration.table_name);
+
+      const options = {
+        autoCreate: true,
+        schema: configuration.table_schema,
+      };
+
+      if (configuration.table_time_partitioning) {
+        options.timePartitioning = { type: configuration.table_time_partitioning };
+      }
+
+      table_instance.get(options, (error, table) => {
+        if (error) {
+          return reject(error);
+        }
+
+        logger.debug(`[ X ] Ensure destination Table "${configuration.table_name}" exist. Metadata: ${util.inspect(table.metadata, null, 10)}`);
+
+        return resolve(configuration);
+      });
+    });
+  }
+
+  /**
+   * Build date partitioning decorator if table time partitioning enabled, otherwise skip and continue
+   * @param {object} configuration Setting and data accumulator
+   * @returns {Promise.<object>} resolves with configuration populated with/without table_partition_decorator property or rejects with corresponding error message
+   */
+  static buildDatePartitionDecorator (configuration) {
+    return new Promise((resolve, reject) => {
+      if (!configuration.partition_date) {
+        return resolve(configuration);
+      }
+
+      try {
+        const datetime = new Date(configuration.partition_date);
+        const year = datetime.getUTCFullYear().toString();
+        let month = (datetime.getUTCMonth() + 1).toString();
+        let date = datetime.getUTCDate().toString();
+
+        // format
+        month = month.length === 1 ? `0${month}` : month;
+        date = date.length === 1 ? `0${date}` : date;
+
+        return resolve(Object.assign(configuration, { table_partition_decorator: `$${year}${month}${date}` }));
+      } catch (exception) {
+        return reject(exception);
+      }
+    });
+  }
+
+  /**
+   * Apply SQL Query prepared state parameters if applicable
+   * @param {object} configuration Setting and data accumulator
+   * @returns {Promise.<object>} resolves with configuration populated with/without sql_query_parameters_formatted property or rejects with corresponding error message
+   */
+  static formatSQLQueryParameters (configuration) {
+    return new Promise((resolve, reject) => {
+      if (!configuration.use_sql_query_parameters) {
+        return resolve(configuration);
+      }
+
+      try {
+        const sql_query_parameters_formatted = configuration.sql_query_parameters.map(Aggregator._buildSQLParameter);
+
+        return resolve(Object.assign(configuration, { sql_query_parameters_formatted }));
+      } catch (exception) {
+        return reject(exception);
+      }
+    });
+  }
+
+  /**
+   * Build BigQuery acceptable SQL Parameter structure
+   * @param {string} name Parameter name
+   * @param {string} type Parameter type
+   * @param {*} value Parameter value
+   * @returns {object} structured SQL Parameter acceptable by BigQuery
+   * @private
+   */
+  static _buildSQLParameter ({ name, type, value }) {
+    return {
+      name,
+      parameterType: {
+        type: type || DEFAULT_SQL_QUERY_PARAMETER_TYPE
+      },
+      parameterValue: { value }
+    };
+  }
+
+  /**
+   * Execute aggregation job and wait for execution result
+   * @param {object} configuration Setting and data accumulator
+   * @returns {Promise.<object>} resolves with configuration populated with metadata property (result of job execution) or rejects with corresponding error message
+   */
+  static executeAggregationJob (configuration) {
+    return new Promise((resolve, reject) => {
+      const table_name = configuration.table_time_partitioning ? `${configuration.table_name}${configuration.table_partition_decorator}` : configuration.table_name;
+      const destination_table = gc_big_query
+        .dataset(configuration.data_set_name)
+        .table(table_name);
+
+      let use_legacy_sql = configuration.use_legacy_sql;
+
+      use_legacy_sql = typeof use_legacy_sql === 'undefined' || use_legacy_sql === null ? true : use_legacy_sql;
+
+      const options = {
+        destination: destination_table,
+        query: configuration.sql_query,
+        useLegacySql: use_legacy_sql
+      };
+
+      if (configuration.use_sql_query_parameters) {
+        options.queryParameters = configuration.sql_query_parameters_formatted;
+      }
+
+      if (configuration.write_disposition) {
+        options.writeDisposition = configuration.write_disposition
+      }
+
+      gc_big_query.startQuery(options, (error, job) => {
+        if (error) {
+          return reject(error);
+        }
+
+        logger.debug(`[ AGGREGATION ] Job (job.id is ${job.id}) is running.`);
+
+        job.on('error', (err) => {
+          logger.error(`[ AGGREGATION ] Job ${job.id} failed. Err is ${err}`);
+          job.removeAllListeners();
+
+          return reject(err);
+        });
+
+        job.on('complete', (metadata) => {
+          logger.debug(`[ AGGREGATION ] Job ${job.id} is complete. Metadata is ${util.inspect(metadata, null, 6)}`);
+          job.removeAllListeners();
+
+          if (metadata.status && metadata.status.errorResult) {
+            // return reject(metadata.status.errors);
+            return reject(metadata.status.getErrorResult);
+          }
+
+          return resolve(Object.assign(configuration, { metadata }));
+        });
       });
     });
   }
