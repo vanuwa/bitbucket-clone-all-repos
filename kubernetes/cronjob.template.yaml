@@ -1,0 +1,35 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: ${job-name}
+spec:
+  schedule: "* * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: ${job-name}
+            image: ${full-image-name}
+#            volumeMounts:
+#              - name: credentials
+#                mountPath: "/usr/src/app/credentials"
+#            env:
+#              - name: NODE_ENV
+#                value: "production"
+#              - name: CONFIG_NAME
+#                valueFrom:
+#                  configMapKeyRef:
+#                    name: config-folder
+#                    key: config_name
+#              - name: SECRET_NAME
+#                valueFrom:
+#                  secretKeyRef:
+#                    name: secret-folder
+#                    key: secret_name
+#          volumes:
+#          - name: credentials
+#            secret:
+#              secretName: secret-credentials-folder
+#              defaultMode: 256
