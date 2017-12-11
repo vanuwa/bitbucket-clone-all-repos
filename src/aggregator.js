@@ -84,8 +84,20 @@ class Aggregator {
         return reject(error);
       }
 
-      if (!configuration.sql_query) {
+      if (!configuration.sql_query || typeof configuration.sql_query !== 'string') {
         const error = new Error(`SQL Query is not present. Expected 'configuration.sql_query' to be defined. 'configuration' is ${configuration}`);
+
+        return reject(error);
+      }
+
+      if (!configuration.data_set_name || typeof configuration.data_set_name !== 'string') {
+        const error = new Error(`Data Set name is not present or nullable. Expected 'configuration.data_set_name' to be defined. 'configuration' is ${configuration}`);
+
+        return reject(error);
+      }
+
+      if (!configuration.table_name || typeof configuration.table_name !== 'string') {
+        const error = new Error(`Table name is not present or nullable. Expected 'configuration.table_name' to be defined. 'configuration' is ${configuration}`);
 
         return reject(error);
       }
