@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  labels:
+    name: ${rc-name}
+  name: ${rc-name}
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: ${rc-name}
+      labels:
+        name: ${rc-name}
+        app: node
+    spec:
+      containers:
+      - name: ${rc-name}
+        image: ${full-image-name}
+
+#        # volume mounts may be used to inject credentials (service accounts) into a running image from secrets
+#        volumeMounts:
+#          - name: credentials
+#            mountPath: "/usr/src/app/credentials"
+#        # setting environment variables directly or from config maps / secrets
+#        env:
+#          - name: NODE_ENV
+#            value: "production"
+#          - name: PROJECT_ID
+#            valueFrom:
+#              configMapKeyRef:
+#                name: data-importer
+#                key: project_id
+#          - name: IE_AUTH_KEY
+#            valueFrom:
+#              secretKeyRef:
+#                name: data-importer-credentials
+#                key: ie_auth_key
+#
+#      # volume from secret location
+#      volumes:
+#      - name: credentials
+#        secret:
+#          secretName: data-importer-credentials
+#          defaultMode: 256

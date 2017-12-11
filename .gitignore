@@ -1,0 +1,8 @@
+.idea
+node_modules/
+logs/*.log
+tmp/
+config/local-*.yaml
+package-lock.json
+.nyc_output
+coverage

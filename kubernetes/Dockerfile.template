@@ -1,0 +1,19 @@
+FROM node:${node-version}
+
+# making app directory
+RUN mkdir -p /usr/src/app
+WORKDIR /usr/src/app
+
+# copying app files
+COPY package.json /usr/src/app
+COPY app.js /usr/src/app
+COPY src /usr/src/app/src
+COPY lib /usr/src/app/lib
+COPY config /usr/src/app/config
+COPY setup /usr/src/app/setup
+
+# installing node dependencies
+RUN npm install
+
+# starting a service
+CMD npm start
