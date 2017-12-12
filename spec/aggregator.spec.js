@@ -96,5 +96,94 @@ describe('Aggregator', () => {
       });
     });
   });
+
+  describe('#buildDatePartitionDecorator', () => {
+    it('property `table_partition_decorator` will be absent within result object if calls without arguments', (done) => {
+      Aggregator
+        .buildDatePartitionDecorator()
+        .then((result) => {
+          expect(result.table_partition_decorator).to.be.undefined;
+
+          done();
+        })
+        .catch(done);
+    });
+
+    it('property `table_partition_decorator` will be present within result object if pass `partition_date` as a Date object within arguments', (done) => {
+      const configuration = {
+        partition_date: new Date('12 December 2017 11:30:15 GMT')
+      };
+
+      Aggregator
+        .buildDatePartitionDecorator(configuration)
+        .then((result) => {
+          expect(result.table_partition_decorator).to.equal('$20171212');
+
+          done();
+        })
+        .catch(done);
+    });
+
+    it('property `table_partition_decorator` will be present within result object if pass `partition_date` as Datetime string within arguments', (done) => {
+      const configuration = {
+        partition_date: '12 December 2017 11:30:15 GMT'
+      };
+
+      Aggregator
+        .buildDatePartitionDecorator(configuration)
+        .then((result) => {
+          expect(result.table_partition_decorator).to.equal('$20171212');
+
+          done();
+        })
+        .catch(done);
+    });
+
+    it('property `table_partition_decorator` will have the same value within result object if `partition_date` equals null within arguments', (done) => {
+      const table_partition_decorator = '$20171212';
+      const configuration = {
+        partition_date: null,
+        table_partition_decorator
+      };
+
+      Aggregator
+        .buildDatePartitionDecorator(configuration)
+        .then((result) => {
+          expect(result.table_partition_decorator).to.equal('$20171212');
+
+          done();
+        })
+        .catch(done);
+    });
+
+    it('property `table_partition_decorator` will have the same value within result object if `partition_date` is absent within arguments', (done) => {
+      const table_partition_decorator = '$20171212';
+      const configuration = {
+        table_partition_decorator
+      };
+
+      Aggregator
+        .buildDatePartitionDecorator(configuration)
+        .then((result) => {
+          expect(result.table_partition_decorator).to.equal('$20171212');
+
+          done();
+        })
+        .catch(done);
+    });
+
+    describe('fails if:', () => {
+      it('`partition_date` passed as an invalid datetime string', (done) => {
+        const configuration = {
+          partition_date: 'abcde'
+        };
+
+        Aggregator
+          .buildDatePartitionDecorator(configuration)
+          .then(done)
+          .catch(() => done());
+      });
+    });
+  });
 });
 

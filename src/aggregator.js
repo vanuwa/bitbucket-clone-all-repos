@@ -168,14 +168,21 @@ class Aggregator {
    * @param {object} configuration Setting and data accumulator
    * @returns {Promise.<object>} resolves with configuration populated with/without table_partition_decorator property or rejects with corresponding error message
    */
-  static buildDatePartitionDecorator (configuration) {
+  static buildDatePartitionDecorator (configuration = {}) {
     return new Promise((resolve, reject) => {
       if (!configuration.partition_date) {
+        logger.warn('[ ! ] `partition_date` is not defined. `table_partition_decorator` will not be build.');
+
         return resolve(configuration);
       }
 
       try {
         const datetime = new Date(configuration.partition_date);
+
+        if (datetime && isNaN(datetime.valueOf())) {
+          return reject(new Error(`Invalid Date Format. 'partition_date' is ${configuration.partition_date}.`));
+        }
+
         const year = datetime.getUTCFullYear().toString();
         let month = (datetime.getUTCMonth() + 1).toString();
         let date = datetime.getUTCDate().toString();
