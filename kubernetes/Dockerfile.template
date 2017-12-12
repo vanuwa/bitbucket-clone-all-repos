@@ -11,6 +11,7 @@ COPY src /usr/src/app/src
 COPY lib /usr/src/app/lib
 COPY config /usr/src/app/config
 COPY setup /usr/src/app/setup
+COPY utils /usr/src/app/utils
 
 # installing node dependencies
 RUN npm install
