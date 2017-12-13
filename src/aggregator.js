@@ -266,7 +266,7 @@ class Aggregator {
       }
 
       if (configuration.write_disposition) {
-        options.writeDisposition = configuration.write_disposition
+        options.writeDisposition = configuration.write_disposition;
       }
 
       big_query_client.startQuery(options, (error, job) => {
