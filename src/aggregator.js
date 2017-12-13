@@ -113,7 +113,8 @@ class Aggregator {
    */
   static ensureDestinationDatasetExist (configuration) {
     return new Promise((resolve, reject) => {
-      const data_set_instance = gc_big_query.dataset(configuration.data_set_name);
+      const data_set_instance = gc_big_query({ projectId: configuration.gcp_project_id })
+        .dataset(configuration.data_set_name);
       const options = {
         autoCreate: true,
         location: configuration.data_set_location
@@ -138,7 +139,7 @@ class Aggregator {
    */
   static ensureDestinationTableExist (configuration) {
     return new Promise((resolve, reject) => {
-      const table_instance = gc_big_query
+      const table_instance = gc_big_query({ projectId: configuration.gcp_project_id })
         .dataset(configuration.data_set_name)
         .table(configuration.table_name);
 
@@ -245,7 +246,8 @@ class Aggregator {
   static executeAggregationJob (configuration) {
     return new Promise((resolve, reject) => {
       const table_name = configuration.table_time_partitioning ? `${configuration.table_name}${configuration.table_partition_decorator}` : configuration.table_name;
-      const destination_table = gc_big_query
+      const big_query_client = gc_big_query({ projectId: configuration.gcp_project_id });
+      const destination_table = big_query_client
         .dataset(configuration.data_set_name)
         .table(table_name);
 
@@ -267,7 +269,7 @@ class Aggregator {
         options.writeDisposition = configuration.write_disposition
       }
 
-      gc_big_query.startQuery(options, (error, job) => {
+      big_query_client.startQuery(options, (error, job) => {
         if (error) {
           return reject(error);
         }
