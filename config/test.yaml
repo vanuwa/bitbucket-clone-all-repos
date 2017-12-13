@@ -1,2 +1,2 @@
 app:
-  log_level: WARN
+  log_level: OFF
