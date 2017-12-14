@@ -28,7 +28,7 @@
   "license": "ISC",
   "homepage": "https://bitbucket.org/manufacturaukraina/nodejs-core-service#readme",
   "engines": {
-    "node": "8.9.1"
+    "node": "8.9.3"
   },
   "devDependencies": {
     "chai": "^4.1.1",
