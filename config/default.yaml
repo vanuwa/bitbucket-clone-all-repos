@@ -1,0 +1,8 @@
+app:
+  name: nodejs-core-service
+  version: 0.1.0
+  log_level: INFO
+  log_pattern: '%[ [%d{ISO8601}] [%p] %] - %m%n'
+  temporary_folder_name: /tmp
+big_query:
+  default_write_disposition: WRITE_EMPTY

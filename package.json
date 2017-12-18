@@ -1,0 +1,54 @@
+{
+  "name": "nodejs-core-service",
+  "version": "0.1.0",
+  "gc-project-name": "gc-project-name",
+  "gc-zone": "europe-west1-b",
+  "gc-cluster-name": "gc-cluster-name",
+  "description": "Core Service with basic modules and templates",
+  "main": "app.js",
+  "scripts": {
+    "start": "NODE_ENV=development node app.js",
+    "play": "NODE_ENV=development node play.js",
+    "test": "NODE_ENV=test nyc mocha spec/**/*.spec.js",
+    "report": "NODE_ENV=test nyc report"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/manufacturaukraina/nodejs-core-service.git"
+  },
+  "keywords": [
+    "service",
+    "core",
+    "server",
+    "data",
+    "nodejs",
+    "google cloud platform"
+  ],
+  "author": "Ivan Kebal <ivan@manufactura.io>",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/manufacturaukraina/nodejs-core-service#readme",
+  "engines": {
+    "node": "8.9.3"
+  },
+  "devDependencies": {
+    "chai": "^4.1.1",
+    "eslint": "^4.13.0",
+    "mocha": "^4.0.1",
+    "nyc": "^11.2.1"
+  },
+  "dependencies": {
+    "@google-cloud/bigquery": "0.9.6",
+    "bluebird": "^3.5.0",
+    "config": "^1.26.1",
+    "log4js": "^2.3.4"
+  },
+  "nyc": {
+    "include": [
+      "src/**/*.js"
+    ],
+    "exclude": [
+      "lib/**/*.js",
+      "spec/**/*.spec.js"
+    ]
+  }
+}
