@@ -1,10 +1,7 @@
 {
-  "name": "nodejs-core-service",
+  "name": "bitbucket-clone-all-repos",
   "version": "0.1.0",
-  "gc-project-name": "gc-project-name",
-  "gc-zone": "europe-west1-b",
-  "gc-cluster-name": "gc-cluster-name",
-  "description": "Core Service with basic modules and templates",
+  "description": "An app that will clone all your bitbucket repos locally (git)",
   "main": "app.js",
   "scripts": {
     "start": "NODE_ENV=development node app.js",
@@ -14,19 +11,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@bitbucket.org/manufacturaukraina/nodejs-core-service.git"
+    "url": "https://github.com/vanuwa/bitbucket-clone-all-repos.git"
   },
   "keywords": [
-    "service",
-    "core",
-    "server",
-    "data",
-    "nodejs",
-    "google cloud platform"
+    "app",
+    "scipt",
+    "bitbucket",
+    "clone",
+    "repositories"
   ],
-  "author": "Ivan Kebal <ivan@manufactura.io>",
+  "author": "Va Nuwa",
   "license": "ISC",
-  "homepage": "https://bitbucket.org/manufacturaukraina/nodejs-core-service#readme",
+  "homepage": "https://github.com/vanuwa/bitbucket-clone-all-repos",
   "engines": {
     "node": "8.9.3"
   },
@@ -37,7 +33,6 @@
     "nyc": "^11.2.1"
   },
   "dependencies": {
-    "@google-cloud/bigquery": "0.9.6",
     "bluebird": "^3.5.0",
     "config": "^1.26.1",
     "log4js": "^2.3.4"

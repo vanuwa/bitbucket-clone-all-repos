@@ -1,5 +1,5 @@
 app:
-  name: nodejs-core-service
+  name: bitbucket-clone-all-repos
   version: 0.1.0
   log_level: INFO
   log_pattern: '%[ [%d{ISO8601}] [%p] %] - %m%n'

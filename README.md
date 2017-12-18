@@ -1,5 +1,5 @@
 # bitbucket-clone-all-repos
-A shell script that will clone all your bitbucket repos locally (git)
+An app that will clone all your bitbucket repos locally (git)
 
 ### What is this repository for? ###
 
